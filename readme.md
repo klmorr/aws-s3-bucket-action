@@ -8,7 +8,7 @@ Testing github actions
 
 [OIDC role created](https://github.com/klmorr/aws-github-oidc)
 
-Github Actions secret created named **GIT_ACTIONS_ROLE_ARN** with value being the oidc role arn
+[Github Actions secret](https://docs.github.com/en/actions/security-guides/using-secrets-in-github-actions) created named **GIT_ACTIONS_ROLE_ARN** with value being the oidc role arn
 
 The Github actions currently trigger on a commit message.
 
