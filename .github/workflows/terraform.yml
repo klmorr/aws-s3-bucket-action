@@ -1,0 +1,81 @@
+name: Run terraform
+
+# Workflow trigger
+on:
+  push:
+    branches:
+      - "main"
+
+# Retrieves id toked for oidc role
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: "us-west-2"
+  TF_ENCRYPT: "True"
+  TF_IN_AUTOMATION: 1
+  TF_DESTROY: false
+
+jobs:
+  terraform_apply:
+    if: contains(github.event.head_commit.message, 'apply')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{env.AWS_REGION}}
+          role-to-assume: ${{ secrets.GIT_ACTIONS_ROLE_ARN }}
+          role-session-name: GitHubActions
+      - name: Setup Terraform Runner
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.6
+      - name: Init
+        id: init
+        run: |
+            rm -rf .terraform
+            terraform init
+        working-directory: "src"
+      - name: Plan
+        id: plan
+        run: terraform plan -no-color
+        working-directory: "src"  
+      - name: Apply
+        id: apply
+        run: terraform apply -auto-approve
+        working-directory: "src"
+
+  terraform_destroy:
+    if: contains(github.event.head_commit.message, 'destroy')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: ${{env.AWS_REGION}}
+          role-to-assume: ${{ secrets.GIT_ACTIONS_ROLE_ARN }}
+          role-session-name: GitHubActions
+      - name: Setup Terraform Runner
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.6.6
+      - name: Init
+        id: init
+        run: |
+            rm -rf .terraform
+            terraform init
+        working-directory: "src"
+      - name: Plan
+        id: plan
+        run: terraform plan -no-color
+        working-directory: "src"
+      - name: Destory
+        id: destroy
+        run: terraform destroy -auto-approve
+        working-directory: "src"
